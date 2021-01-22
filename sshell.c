@@ -238,7 +238,6 @@ int main(void)
                 char command[CMDLINE_MAX];
                 strcpy(command, cmd);
                 int return_state = parse_command(&command_obj_one, command);
-                printf("successfully returned\n");
 
                 switch(return_state) {
                         case ERR_TOOMANY_ARG:
@@ -296,8 +295,6 @@ int main(void)
                 }
 
                 if (return_state == WITH_ONLY_REDIRECT) {
-                        printf("Im here 298\n");
-
                         /* Regular command with only redirection */
                         int pid = fork();
 
