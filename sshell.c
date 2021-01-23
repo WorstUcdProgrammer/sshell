@@ -38,7 +38,6 @@ enum parsing_state {
 struct command {
         char *argv[17];
         struct command * next_command;
-        char read_from[CMDLINE_MAX];
         char write_to[CMDLINE_MAX];
 };
 
