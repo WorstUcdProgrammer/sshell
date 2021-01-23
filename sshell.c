@@ -124,14 +124,33 @@ int parse_command(struct command *obj, char cmd[CMDLINE_MAX]) {
                         return ERR_MISLOCATED_RED;
                 }
 
-                if (dest_after[0] == '\0') {
+                char * dest_after_no_space;
+                char * command_before_no_space;
+                dest_after_no_space = strtok(dest_after, " ");
+                command_before_no_space = strtok(command_before, " ");
+
+                if (dest_after_no_space == NULL || command_before_no_space == NULL) {
                         return ERR_MISSING_CMD;
                 } else {
-                        char * dest_after_no_space;
-                        dest_after_no_space = strtok(dest_after, " ");
                         if (!access(dest_after_no_space, F_OK) && access(dest_after_no_space, W_OK)) {
                                 return ERR_CANT_OPEN;
                         } else {
+                                int counter = 0;
+                                char * current_str;
+                                current_str = strtok(cmd, " ");
+                                while (current_str != NULL)
+                                {
+                                        if (counter == 14) {
+                                                return ERR_TOOMANY_ARG;
+                                        }
+                                        if (count_char('>', current_str)) {
+                                                break;
+                                        }
+                                        current_command->argv[counter] = current_str;
+                                        counter++;
+                                        current_str = strtok(NULL, " ");
+                                }
+                                current_command->argv[counter] = NULL;
                                 strcpy(current_command->write_to, dest_after_no_space);
                                 return WITH_ONLY_REDIRECT;
                         }
@@ -278,7 +297,7 @@ int main(void)
                         
                                 int status;
                                 wait(&status);
-                                if (status != 0) {
+                                if (status == ERR_CMD_NOTFOUND) {
                                         error_message(ERR_CMD_NOTFOUND);
                                         continue;
                                 }
@@ -288,7 +307,7 @@ int main(void)
                         } else {
 
                                 if (execvp(command_obj_one.argv[0], command_obj_one.argv) == -1) {
-                                        exit(1);
+                                        exit(ERR_CMD_NOTFOUND);
                                 }
                                 exit(0);
                         }
@@ -311,14 +330,15 @@ int main(void)
                                         cmd, WEXITSTATUS(status));
                         } else {
                                 int fd1;
-                                fd1 = open(command_obj_one.write_to, O_WRONLY | O_RDWR, 0644);
+                                fd1 = open(command_obj_one.write_to, O_WRONLY | O_CREAT, 0644);
                                 dup2(fd1, STDOUT_FILENO);
-                                close(fd1);
 
                                 if (execvp(command_obj_one.argv[0], command_obj_one.argv) == -1) {
                                         exit(1);
+                                        close(fd1);
                                 }
                                 exit(0);
+                                close(fd1);
                         }
                 }
         }
